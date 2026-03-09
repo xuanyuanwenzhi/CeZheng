@@ -10,3 +10,6 @@ key.properties
 .idea/ 
 *.iml 
 czsk_miyao 
+*.apk 
+*.aab 
+app/release/ 
