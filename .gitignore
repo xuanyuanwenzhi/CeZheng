@@ -1,0 +1,12 @@
+build/ 
+app/build/ 
+.gradle/ 
+gradlew 
+gradlew.bat 
+local.properties 
+*.jks 
+*.keystore 
+key.properties 
+.idea/ 
+*.iml 
+czsk_miyao 
