@@ -7,34 +7,35 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import com.czsk.app.model.ConfigPlace
 import com.czsk.app.model.PlanItem
 import com.czsk.app.model.PlanStatus
 import com.czsk.app.model.PlanType
-import com.czsk.app.model.ReminderMode
-import com.czsk.app.reminder.ReminderPrefs
 import com.czsk.app.reminder.ReminderScheduler
 import com.czsk.app.storage.AppStorage
 import com.czsk.app.ui.add.AddPlanScreen
-import com.czsk.app.ui.config.ConfigScreen
+import com.czsk.app.ui.battle.KaMiaoBattleScreen // 修改：导入正确的卡秒出征组件
 import com.czsk.app.ui.home.HomeScreen
 import com.czsk.app.ui.importer.ImportPreviewItem
 import com.czsk.app.ui.importer.ImportScreen
 import com.czsk.app.ui.importer.ImportStage
 import com.czsk.app.ui.importer.parseImportLines
 import com.czsk.app.ui.importer.rebuildImportPreviewItemFromPlan
+import com.czsk.app.ui.map.MapCoordinateScreen
 import com.czsk.app.ui.more.MoreScreen
 import com.czsk.app.ui.settings.SettingsScreen
 
+// 枚举定义
 private enum class AppScreen {
     HOME,
     ADD,
     IMPORT,
     SETTINGS,
-    CONFIG,
+    MAP,
+    BATTLE,
     MORE
 }
 
+// 构建默认计划（保持不变）
 private fun buildDefaultPlans(): List<PlanItem> {
     return listOf(
         PlanItem(
@@ -46,7 +47,7 @@ private fun buildDefaultPlans(): List<PlanItem> {
             y = 328,
             scheduledTimeMillis = System.currentTimeMillis() + 42 * 60 * 1000L,
             note = "主力队提前 5 分钟集结",
-            reminderMode = ReminderMode.RING,
+            reminderMode = com.czsk.app.model.ReminderMode.RING,
             reminderLeadMinutes = 10
         ),
         PlanItem(
@@ -58,7 +59,7 @@ private fun buildDefaultPlans(): List<PlanItem> {
             y = 32,
             scheduledTimeMillis = System.currentTimeMillis() + 82 * 60 * 1000L,
             note = "征兵后检查预备兵",
-            reminderMode = ReminderMode.NOTIFICATION,
+            reminderMode = com.czsk.app.model.ReminderMode.NOTIFICATION,
             reminderLeadMinutes = 5
         ),
         PlanItem(
@@ -70,7 +71,7 @@ private fun buildDefaultPlans(): List<PlanItem> {
             y = 417,
             scheduledTimeMillis = System.currentTimeMillis() + 132 * 60 * 1000L,
             note = "拆迁队和主力错峰到达",
-            reminderMode = ReminderMode.NOTIFICATION,
+            reminderMode = com.czsk.app.model.ReminderMode.NOTIFICATION,
             reminderLeadMinutes = 15
         ),
         PlanItem(
@@ -83,7 +84,7 @@ private fun buildDefaultPlans(): List<PlanItem> {
             scheduledTimeMillis = System.currentTimeMillis() + 600 * 60 * 1000L,
             note = "确认要塞队列和耐久",
             status = PlanStatus.DONE,
-            reminderMode = ReminderMode.NONE,
+            reminderMode = com.czsk.app.model.ReminderMode.NONE,
             reminderLeadMinutes = null
         ),
         PlanItem(
@@ -95,7 +96,7 @@ private fun buildDefaultPlans(): List<PlanItem> {
             y = null,
             scheduledTimeMillis = System.currentTimeMillis() + 190 * 60 * 1000L,
             note = "准备后续连续铺路",
-            reminderMode = ReminderMode.NOTIFICATION,
+            reminderMode = com.czsk.app.model.ReminderMode.NOTIFICATION,
             reminderLeadMinutes = 30
         ),
         PlanItem(
@@ -107,7 +108,7 @@ private fun buildDefaultPlans(): List<PlanItem> {
             y = null,
             scheduledTimeMillis = System.currentTimeMillis() + 250 * 60 * 1000L,
             note = "记录明早接力安排",
-            reminderMode = ReminderMode.NONE,
+            reminderMode = com.czsk.app.model.ReminderMode.NONE,
             reminderLeadMinutes = null
         )
     )
@@ -131,12 +132,6 @@ fun CezhengApp() {
     val plans = remember {
         mutableStateListOf<PlanItem>().apply {
             addAll(persistedPlans)
-        }
-    }
-
-    val configPlaces = remember {
-        mutableStateListOf<ConfigPlace>().apply {
-            addAll(AppStorage.loadConfigPlaces(context))
         }
     }
 
@@ -199,7 +194,8 @@ fun CezhengApp() {
                 },
                 onNavigateImport = { currentScreen.value = AppScreen.IMPORT },
                 onNavigateSettings = { currentScreen.value = AppScreen.SETTINGS },
-                onNavigateConfig = { currentScreen.value = AppScreen.CONFIG },
+                onNavigateMap = { currentScreen.value = AppScreen.MAP },
+                onNavigateBattle = { currentScreen.value = AppScreen.BATTLE },
                 onNavigateMore = { currentScreen.value = AppScreen.MORE },
                 onToggleDone = { item ->
                     val index = plans.indexOfFirst { it.id == item.id }
@@ -361,30 +357,21 @@ fun CezhengApp() {
                 onRingtoneSelected = { name, uri ->
                     ringtoneName.value = name
                     ringtoneUri.value = uri
-                    ReminderPrefs.saveRingtone(context, name, uri)
+                    com.czsk.app.reminder.ReminderPrefs.saveRingtone(context, name, uri)
                     AppStorage.saveRingtone(context, name, uri)
                 }
             )
         }
 
-        AppScreen.CONFIG -> {
-            ConfigScreen(
-                places = configPlaces,
-                onBack = { currentScreen.value = AppScreen.HOME },
-                onAddPlace = { name, x, y ->
-                    val newPlace = ConfigPlace(
-                        id = System.currentTimeMillis(),
-                        name = name,
-                        x = x,
-                        y = y
-                    )
-                    configPlaces.add(0, newPlace)
-                    AppStorage.saveConfigPlaces(context, configPlaces)
-                },
-                onDeletePlace = { item ->
-                    configPlaces.removeAll { it.id == item.id }
-                    AppStorage.saveConfigPlaces(context, configPlaces)
-                }
+        AppScreen.MAP -> {
+            MapCoordinateScreen(
+                onBack = { currentScreen.value = AppScreen.HOME }
+            )
+        }
+
+        AppScreen.BATTLE -> {
+            KaMiaoBattleScreen( // 使用正确的组件名
+                onBack = { currentScreen.value = AppScreen.HOME }
             )
         }
 

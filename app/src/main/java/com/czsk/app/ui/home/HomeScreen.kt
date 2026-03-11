@@ -199,7 +199,8 @@ fun HomeScreen(
     onNavigateEdit: (PlanItem) -> Unit,
     onNavigateImport: () -> Unit,
     onNavigateSettings: () -> Unit,
-    onNavigateConfig: () -> Unit,
+    onNavigateMap: () -> Unit, // 新增：地图坐标导航回调
+    onNavigateBattle: () -> Unit, // 新增：卡秒出征导航回调
     onNavigateMore: () -> Unit,
     onToggleDone: (PlanItem) -> Unit,
     onDelete: (PlanItem) -> Unit
@@ -298,11 +299,26 @@ fun HomeScreen(
                     .statusBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                Text(
-                    text = "策征时刻",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                // 核心修改：标题行增加版本号
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "策征时刻",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = "v1.1",
+                        fontSize = 8.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(bottom = 2.dp)
+                    )
+                }
                 Text(
                     text = "运筹帷幄，准时出征——你的SLG战场闹钟",
                     style = MaterialTheme.typography.bodySmall,
@@ -318,7 +334,8 @@ fun HomeScreen(
                 if (fabExpanded && !selectionMode) {
                     MiniActionButton(label = "➕ 添加", onClick = onNavigateAdd)
                     MiniActionButton(label = "📥 一键导入", onClick = onNavigateImport)
-                    MiniActionButton(label = "🧪 配置信息", onClick = onNavigateConfig)
+                    MiniActionButton(label = "🗺️ 地图坐标", onClick = onNavigateMap) // 新增
+                    MiniActionButton(label = "⏰ 卡秒出征", onClick = onNavigateBattle) // 新增
                     MiniActionButton(label = "⚙️ 设置", onClick = onNavigateSettings)
                     MiniActionButton(label = "📦 其他", onClick = onNavigateMore)
                 }

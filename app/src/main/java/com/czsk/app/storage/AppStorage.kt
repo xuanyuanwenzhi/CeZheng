@@ -133,8 +133,8 @@ object AppStorage {
                         ConfigPlace(
                             id = obj.getLong("id"),
                             name = obj.getString("name"),
-                            x = obj.getInt("x"),
-                            y = obj.getInt("y")
+                            x = obj.getString("x"),   // 关键修复：改为 getString
+                            y = obj.getString("y")    // 关键修复：改为 getString
                         )
                     )
                 }
